@@ -14,7 +14,8 @@ clean:
 install:
 	sudo cp ./mapper /opt/mapper
 	sudo chown root:root /opt/mapper
-
+	sudo cp gpson /usr/bin/
+	sudo cp gpsoff /usr/bin/
 	cp ttnmapper.service  /lib/systemd/system/
 	sudo systemctl daemon-reload
 	sudo systemctl enable ttnmapper
