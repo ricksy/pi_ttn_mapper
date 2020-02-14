@@ -142,7 +142,9 @@ bool init_gps(void)
     }
     sleep(3);
   }
-  printf("code: %d, reason: %s\n", rc, gps_errstr(rc));
+  char str[100];
+  sprintf(str, "%d", "code: %d, reason: %s\n", rc, gps_errstr(rc));
+  logMsg(str);
   return false;
 }
 
@@ -179,8 +181,12 @@ bool fetch_gps(void)
 
 
 static void do_send(osjob_t* j){
-      time_t t=time(NULL);
-      fprintf(stdout, "[%x] (%ld) %s\n", hal_ticks(), t, ctime(&t));
+  time_t t=time(NULL);
+  char str[100];
+  sprintf(str,"[%x] (%ld) %s\n", hal_ticks(), t, ctime(&t));
+  logMsg(str);
+  for(int i=0;i<100;i++)
+    str[i]=0;
       // Show TX channel (channel numbers are local to LMIC)
       // Check if there is not a current TX/RX job running
     if (LMIC.opmode & (1 << 7)) {
@@ -191,15 +197,15 @@ static void do_send(osjob_t* j){
       char buf[10];
       //sprintf(buf, "Hell[%d]", cntr++);
       if (fetch_gps()) {
-        printf("GPS fix achieved\r\n");
+        logMsg("GPS fix achieved\r\n");
       	int LatitudeBinary = ((my_gps_data.fix.latitude + 90) / 180.0) * 16777215;
-	//printf("lat:%06x\n",LatitudeBinary&0xffffff);
+	//logMsg("lat:%06x\n",LatitudeBinary&0xffffff);
       	int LongitudeBinary = ((my_gps_data.fix.longitude + 180) / 360.0) * 16777215;
-	//printf("lon:%06x\n",LongitudeBinary&0xffffff);
+	//logMsg("lon:%06x\n",LongitudeBinary&0xffffff);
       	int AltitudeBinary = my_gps_data.fix.altitude;
-	//printf("alt:%04x\n",AltitudeBinary&0xffff);
+	//logMsg("alt:%04x\n",AltitudeBinary&0xffff);
       	int HdopBinary = my_gps_data.dop.hdop * 10.0;
-	//printf("hdop:%02x\n",HdopBinary&0xff);
+	//logMsg("hdop:%02x\n",HdopBinary&0xff);
 	//sprintf(&buf[0], "%06x%06x%04x%02x", LatitudeBinary & 0xFFFFFF, LongitudeBinary & 0xFFFFFF, AltitudeBinary & 0xFFFF, HdopBinary & 0xFF);
 	buf[0] = ( LatitudeBinary >> 16 ) & 0xFF;
   	buf[1] = ( LatitudeBinary >> 8 ) & 0xFF;
@@ -211,18 +217,16 @@ static void do_send(osjob_t* j){
   	buf[7] = AltitudeBinary & 0xFF;
   	buf[8] = HdopBinary & 0xFF;
   	buf[9] = 0x00;
-	
-	printf("lat: %f, lon: %f, alt: %f, hdop: %f\n", my_gps_data.fix.latitude, my_gps_data.fix.longitude, my_gps_data.fix.altitude, my_gps_data.dop.hdop);
+  sprintf(str,"lat: %f, lon: %f, alt: %f, hdop: %f\n", my_gps_data.fix.latitude, my_gps_data.fix.longitude, my_gps_data.fix.altitude, my_gps_data.dop.hdop);
+	logMsg(str);
       	for (int jj=0;jj<10;jj++) {
         	mydata[jj]=buf[jj];
-		printf("%#x ",buf[jj]);
-	//	printf("|%02x |",buf[jj]);
       	}
-	printf("\n");
+
       	LMIC_setTxData2(1, mydata, 9, 0);
     }else
     {
-	    printf("No gps fix\n");
+	    logMsg("No gps fix\n");
     }
     }
     // Schedule a timed job to run at the given timestamp (absolute system time)
@@ -236,12 +240,12 @@ void setup() {
   wiringPiSetup();
 
   // Initializing  GPS
-  printf("Now initializing GPS ...\r\n");
+  logMsg("Now initializing GPS ...\r\n");
   if (init_gps() == false) {
     logMsg("GPS init failed\r\n");
     return ;
   }
-  printf("GPS init finished\r\n");
+  logMsg("GPS init finished\r\n");
   os_init();
   // Reset the MAC state. Session and pending data transfers will be discarded.
   LMIC_reset();
