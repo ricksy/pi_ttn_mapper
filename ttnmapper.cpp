@@ -217,7 +217,8 @@ static void do_send(osjob_t* j){
   	buf[7] = AltitudeBinary & 0xFF;
   	buf[8] = HdopBinary & 0xFF;
   	buf[9] = 0x00;
-  sprintf(str,"lat: %f, lon: %f, alt: %f, hdop: %f\n", my_gps_data.fix.latitude, my_gps_data.fix.longitude, my_gps_data.fix.altitude, my_gps_data.dop.hdop);
+  	sprintf(str,"lat: %f, lon: %f, alt: %f, hdop: %f, time: %f\n", my_gps_data.fix.latitude, my_gps_data.fix.longitude,
+		       					my_gps_data.fix.altitude, my_gps_data.dop.hdop, my_gps_data.fix.time);
 	logMsg(str);
       	for (int jj=0;jj<10;jj++) {
         	mydata[jj]=buf[jj];
